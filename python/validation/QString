@@ -1,0 +1,4 @@
+#pragma once
+#include <string>
+struct QByteArray {std::string s; const char *constData() const {return s.c_str();}};
+struct QString {std::string s; QString() {} QString(const char *a):s(a){} QByteArray toLocal8Bit() const {return {s};}};
