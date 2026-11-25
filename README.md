@@ -121,6 +121,7 @@ The workflow:
   as required by keytool for PKCS12. Because the key changes on every run,
   Android will not accept a new build as an update to a previously installed
   build; uninstalling the old build also removes its app data.
+  as required by keytool for PKCS12.
 - Runs `./gradlew :app:assembleRelease --no-daemon --stacktrace` from
   `android/`, falling back to `assembleDebug` if the release build fails.
 - Uploads the APK (`hdrmerge-apk`, 30-day retention) and the Gradle log
@@ -129,6 +130,7 @@ The workflow:
   Kotlin-to-Python bridge; it uploads test results for seven days.
 - Fails the run if no APK was produced, the upload fails, or the emulator test
   fails.
+- Fails the run only if no APK was produced at all.
 - Stages the APK as the stable filename `hdrmerge-lite-latest.apk` and publishes
   / updates the rolling `latest` prerelease with the commit SHA, push timestamp
   and run URL. The publish step runs only on pushes to `main` and needs
