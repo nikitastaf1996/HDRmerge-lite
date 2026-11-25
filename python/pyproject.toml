@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hdrmerge-python"
+version = "0.3.0"
+description = "Focused Python port of HDRMerge's raw exposure merging path"
+requires-python = ">=3.10"
+license = {text = "GPL-3.0-or-later"}
+dependencies = ["numpy>=1.24", "scipy>=1.10", "tifffile>=2023.7.10", "imagecodecs>=2023.7.10"]
+
+[project.optional-dependencies]
+# The native ALGLIB binding is optional: hdrmerge_core falls back to the
+# pure-NumPy port in alglib_compat when it is unavailable (e.g. on Android,
+# where xalglib has no ARM wheel).
+alglib = ["xalglib==3.16.0"]
+test = ["pytest>=7"]
+
+[project.scripts]
+hdrmerge-python = "hdrmerge_python:main"
+
+[tool.setuptools]
+py-modules = ["hdrmerge_python", "hdrmerge_core", "compatibility", "alglib_compat"]

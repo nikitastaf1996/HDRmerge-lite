@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HDRMerge Lite</string>
+    <string name="pick_hint">Pick three DNG exposures of the same scene (order does not matter).</string>
+    <string name="pick_dng">Pick DNG</string>
+    <string name="not_picked">Not picked</string>
+    <string name="align_exposures">Align exposures automatically (uncheck for a locked tripod)</string>
+    <string name="feather_radius">Feather radius</string>
+    <string name="output_bits">Output bits</string>
+    <string name="merge">Merge</string>
+    <string name="save_output">Save output DNG…</string>
+    <string name="status_ready">Ready.</string>
+    <string name="merging">Merging…</string>
+    <string name="done">Merge complete.</string>
+</resources>
