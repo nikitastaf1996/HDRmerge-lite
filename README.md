@@ -118,12 +118,17 @@ The workflow:
 - Generates a fresh PKCS12 signing keystore on the runner (keystores are
   gitignored) and signs the release via the environment-driven `ciRelease`
   signing config in `app/build.gradle.kts`. The key and store passwords match,
-  as required by keytool for PKCS12.
+  as required by keytool for PKCS12. Because the key changes on every run,
+  Android will not accept a new build as an update to a previously installed
+  build; uninstalling the old build also removes its app data.
 - Runs `./gradlew :app:assembleRelease --no-daemon --stacktrace` from
   `android/`, falling back to `assembleDebug` if the release build fails.
 - Uploads the APK (`hdrmerge-apk`, 30-day retention) and the Gradle log
   (`build-log`, 7-day retention), including both attempts when falling back.
-- Fails the run only if no APK was produced at all.
+- Runs an Android emulator test which merges synthetic DNGs through the actual
+  Kotlin-to-Python bridge; it uploads test results for seven days.
+- Fails the run if no APK was produced, the upload fails, or the emulator test
+  fails.
 - Stages the APK as the stable filename `hdrmerge-lite-latest.apk` and publishes
   / updates the rolling `latest` prerelease with the commit SHA, push timestamp
   and run URL. The publish step runs only on pushes to `main` and needs
