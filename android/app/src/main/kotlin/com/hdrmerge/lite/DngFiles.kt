@@ -25,7 +25,9 @@ object DngFiles {
     fun pick(activity: Activity, requestCode: Int) {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = "image/*"
+            // Some document providers classify DNGs as generic binary files.
+            type = "*/*"
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*", "application/octet-stream"))
         }
         activity.startActivityForResult(intent, requestCode)
     }
@@ -42,14 +44,19 @@ object DngFiles {
 
     /** Copy a content:// URI into [dest], a real file Python can open by path. */
     fun copyUriToFile(context: Context, uri: Uri, dest: File): Boolean {
+        val temp = File(dest.parentFile, "${dest.name}.tmp")
         return try {
             dest.parentFile?.mkdirs()
             context.contentResolver.openInputStream(uri)?.use { input ->
-                dest.outputStream().use { output -> input.copyTo(output) }
+                temp.outputStream().use { output -> input.copyTo(output) }
             } ?: return false
-            true
+            // Rename only after the copy succeeds, so a failed replacement keeps
+            // the previous exposure intact.
+            temp.renameTo(dest)
         } catch (e: Exception) {
             false
+        } finally {
+            temp.delete()
         }
     }
 

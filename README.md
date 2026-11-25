@@ -71,7 +71,7 @@ Built with [Chaquopy](https://chaquopy.com), which embeds CPython in the APK.
 ### Prerequisites
 
 - Android Studio, JDK 17, Android SDK (compileSdk 34), and a local Python
-  matching the app's interpreter version (3.11) available on the build machine
+  matching the app's interpreter version (3.10) available on the build machine
   (Chaquopy uses it to install/compile packages).
 - Chaquopy downloads Android builds of NumPy, SciPy and tifffile from its
   package index. `xalglib` and `imagecodecs` are intentionally not installed:
@@ -85,8 +85,12 @@ cd android
 ./gradlew :app:assembleDebug
 ```
 
-Install the resulting APK, open **HDRMerge Lite**, pick three DNGs, press
-**Merge**, then **Save output DNG…** to choose where the result is written.
+Install the resulting APK, open **HDRMerge Lite**, tap each exposure card to pick
+three DNGs (their order does not matter), then press **Merge frames** and
+**Save output DNG…**. Thumbnails are shown when the file provider can supply
+them; otherwise the app uses a placeholder. The processing core supports 16-
+and 32-bit floating-point output, not 8-bit output. Changing an exposure or
+merge setting invalidates the previous output so it cannot be saved by mistake.
 
 ### How it works
 
@@ -121,7 +125,6 @@ The workflow:
   as required by keytool for PKCS12. Because the key changes on every run,
   Android will not accept a new build as an update to a previously installed
   build; uninstalling the old build also removes its app data.
-  as required by keytool for PKCS12.
 - Runs `./gradlew :app:assembleRelease --no-daemon --stacktrace` from
   `android/`, falling back to `assembleDebug` if the release build fails.
 - Uploads the APK (`hdrmerge-apk`, 30-day retention) and the Gradle log
@@ -130,7 +133,6 @@ The workflow:
   Kotlin-to-Python bridge; it uploads test results for seven days.
 - Fails the run if no APK was produced, the upload fails, or the emulator test
   fails.
-- Fails the run only if no APK was produced at all.
 - Stages the APK as the stable filename `hdrmerge-lite-latest.apk` and publishes
   / updates the rolling `latest` prerelease with the commit SHA, push timestamp
   and run URL. The publish step runs only on pushes to `main` and needs

@@ -66,7 +66,6 @@ class HdrMergeEngine(context: Context) {
         // Chaquopy exposes Java arrays as Python sequences, but a Java List
         // (such as the ArrayList returned by map) is not Python-iterable.
         val result = module!!.callAttr("run", inputs.toTypedArray(), outputPath, align, radius, bits, progress)
-        val result = module!!.callAttr("run", inputs, outputPath, align, radius, bits, progress)
         return result.callAttr("__getitem__", "output").toString()
     }
 }
