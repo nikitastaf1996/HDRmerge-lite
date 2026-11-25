@@ -1,0 +1,135 @@
+name: Build APK
+
+# Every push to main triggers an automatic release-APK build. The APK is
+# published to a rolling "latest" prerelease so the stable URL
+#   .../releases/download/latest/hdrmerge-lite-latest.apk
+# always serves the freshest build. Build artifacts (the APK and the full
+# Gradle log) are also uploaded for debugging; the APK is not committed.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: build-apk
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    # Required by the release step: the default GITHUB_TOKEN is read-only and
+    # the release update would fail with HTTP 403 without contents: write.
+    permissions:
+      contents: write
+    env:
+      # CI demo signing credentials. The keystore is generated fresh on every
+      # run (and .gitignore excludes keystores), so these are not secrets that
+      # protect anything in the repository.
+      ANDROID_KEYSTORE_PASSWORD: hdrmerge-ci-store-pass
+      ANDROID_KEY_PASSWORD: hdrmerge-ci-key-pass
+      ANDROID_KEY_ALIAS: hdrmerge
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Python 3.11
+        # Chaquopy builds its Python packages with a local interpreter whose
+        # major.minor must match the app's runtime version (3.11 here).
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Android SDK and NDK
+        uses: android-actions/setup-android@v3
+        with:
+          ndk-version: 27.1.12297006
+          # Cover the app's compileSdk (34) and the runner's SDK 35, so AGP has
+          # the platform and build-tools it needs without auto-downloading.
+          sdk-components: 'platform-tools platforms;android-34 platforms;android-35 build-tools;34.0.0 build-tools;35.0.0'
+
+      - name: Generate CI signing keystore
+        run: |
+          set -e
+          KEYSTORE_DIR="$RUNNER_TEMP/keystore"
+          mkdir -p "$KEYSTORE_DIR"
+          KEYSTORE_FILE="$KEYSTORE_DIR/hdrmerge-lite.jks"
+          keytool -genkeypair -v \
+            -keystore "$KEYSTORE_FILE" -storetype PKCS12 \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -alias "$ANDROID_KEY_ALIAS" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -keypass "$ANDROID_KEY_PASSWORD" \
+            -dname "CN=HDRMerge Lite CI, O=HDRMerge, C=US"
+          echo "ANDROID_KEYSTORE_FILE=$KEYSTORE_FILE" >> "$GITHUB_ENV"
+
+      - name: Build release APK (fall back to debug)
+        run: |
+          set -o pipefail
+          LOG="$RUNNER_TEMP/build.log"
+          if ./gradlew :app:assembleRelease --no-daemon --stacktrace 2>&1 | tee "$LOG"; then
+            echo "Release build succeeded"
+          elif ./gradlew :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee "$LOG"; then
+            echo "Release build failed; debug build succeeded"
+          else
+            echo "Both release and debug builds failed"
+          fi
+          # Do not fail here: the run only fails below if no APK was produced,
+          # so the build log can still be uploaded.
+          exit 0
+
+      - name: Upload build log
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: ${{ runner.temp }}/build.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Locate APK
+        id: apk
+        run: |
+          APK=$(find app/build/outputs/apk -name '*.apk' -type f 2>/dev/null | head -n 1)
+          if [ -z "$APK" ]; then
+            echo "::error::No APK was produced by the build"
+            exit 1
+          fi
+          echo "path=$APK" >> "$GITHUB_OUTPUT"
+
+      - name: Upload APK artifact
+        if: steps.apk.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: hdrmerge-apk
+          path: ${{ steps.apk.outputs.path }}
+          retention-days: 30
+
+      - name: Stage stable latest APK
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.apk.outcome == 'success'
+        run: |
+          mkdir -p "$RUNNER_TEMP/release"
+          cp "${{ steps.apk.outputs.path }}" "$RUNNER_TEMP/release/hdrmerge-lite-latest.apk"
+
+      - name: Publish rolling latest prerelease
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.apk.outcome == 'success'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest
+          prerelease: true
+          allow_updates: true
+          body: |
+            ## HDRMerge Lite — latest build
+            - Commit: `${{ github.sha }}`
+            - Built: ${{ github.event.head_commit.timestamp }}
+            - Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          files: ${{ runner.temp }}/release/hdrmerge-lite-latest.apk

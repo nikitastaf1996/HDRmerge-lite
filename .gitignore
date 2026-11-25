@@ -16,6 +16,11 @@ android/captures/
 android/.cxx/
 *.iml
 
+# Signing keystores (generated in CI, never committed)
+*.jks
+*.keystore
+*.p12
+
 # Local scratch / downloaded sources
 extracted/
 google_drive/
