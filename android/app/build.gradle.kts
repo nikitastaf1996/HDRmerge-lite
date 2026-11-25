@@ -14,6 +14,11 @@ val copyPythonSource = tasks.register<Copy>("copyPythonSource") {
 }
 tasks.named("preBuild") { dependsOn(copyPythonSource) }
 
+// CI signing: when the GitHub Actions workflow provides a keystore through
+// environment variables, sign the release with it. Local builds without these
+// variables keep the default (unsigned) release configuration.
+val ciKeystore = System.getenv("ANDROID_KEYSTORE_FILE")
+
 android {
     namespace = "com.hdrmerge.lite"
     compileSdk = 34
@@ -31,9 +36,23 @@ android {
         }
     }
 
+    signingConfigs {
+        if (!ciKeystore.isNullOrEmpty()) {
+            create("ciRelease") {
+                storeFile = file(ciKeystore)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (!ciKeystore.isNullOrEmpty()) {
+                signingConfig = signingConfigs.getByName("ciRelease")
+            }
         }
     }
 

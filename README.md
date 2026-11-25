@@ -99,6 +99,37 @@ Install the resulting APK, open **HDRMerge Lite**, pick three DNGs, press
 3. The merged DNG is written to `files/output/merged.dng`; **Save output DNG…**
    lets the user pick a destination and copies it there.
 
+## CI and releases
+
+`.github/workflows/build-apk.yml` builds a release APK automatically on every
+push to `main` (and on manual `workflow_dispatch`) and publishes it to a rolling
+**`latest`** prerelease. The stable download URL therefore always serves the
+freshest build:
+
+```
+https://github.com/nikitastaf1996/HDRmerge-lite/releases/download/latest/hdrmerge-lite-latest.apk
+```
+
+The workflow:
+
+- Runs on `ubuntu-24.04`, sets up JDK 17 (Temurin), Python 3.11 (Chaquopy's
+  build interpreter, matching the app's runtime version), Android SDK 35 and
+  NDK 27.1.12297006.
+- Generates a fresh signing keystore on the runner (keystores are gitignored)
+  and signs the release via the environment-driven `ciRelease` signing config
+  in `app/build.gradle.kts`.
+- Runs `./gradlew :app:assembleRelease --no-daemon --stacktrace`, falling back
+  to `assembleDebug` if the release build fails.
+- Uploads the APK (`hdrmerge-apk`, 30-day retention) and the full Gradle log
+  (`build-log`, 7-day retention).
+- Fails the run only if no APK was produced at all.
+- Stages the APK as the stable filename `hdrmerge-lite-latest.apk` and publishes
+  / updates the rolling `latest` prerelease with the commit SHA, push timestamp
+  and run URL. The publish step runs only on pushes to `main` and needs
+  `contents: write` at the job level.
+
+The APK is not committed to the repository.
+
 ## Status and caveats
 
 - The Python core and its ALGLIB fallback are tested (14 tests) and the merge
