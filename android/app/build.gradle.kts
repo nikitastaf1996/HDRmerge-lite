@@ -67,18 +67,15 @@ android {
 
 chaquopy {
     defaultConfig {
-        // 3.11 supports both 32-bit and 64-bit ABIs, maximizing device coverage.
-        version = "3.11"
+        // SciPy's Chaquopy Android wheels are available for 3.10, not 3.11.
+        version = "3.10"
 
         pip {
-            // NumPy and SciPy are required by the processing core; tifffile reads
-            // and writes the DNG files. These have Android builds on Chaquopy's
-            // package index; if a native package is missing for the chosen Python
-            // version, Chaquopy builds it from source (needs Python + NDK on the
-            // build machine).
-            install("numpy")
-            install("scipy")
-            install("tifffile")
+            // Match the available Chaquopy wheels and SciPy's NumPy ABI. Pin
+            // tifffile to a version compatible with this NumPy version too.
+            install("numpy==1.23.3")
+            install("scipy==1.8.1")
+            install("tifffile==2023.7.10")
             // xalglib is deliberately NOT installed: it has no Android ARM build.
             // hdrmerge_core falls back to the pure-NumPy port in alglib_compat.
             // imagecodecs is optional (tifffile only needs it for compressed
