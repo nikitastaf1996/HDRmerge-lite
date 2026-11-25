@@ -115,13 +115,14 @@ The workflow:
 - Runs on `ubuntu-24.04`, sets up JDK 17 (Temurin), Python 3.11 (Chaquopy's
   build interpreter, matching the app's runtime version), Android SDK 35 and
   NDK 27.1.12297006.
-- Generates a fresh signing keystore on the runner (keystores are gitignored)
-  and signs the release via the environment-driven `ciRelease` signing config
-  in `app/build.gradle.kts`.
-- Runs `./gradlew :app:assembleRelease --no-daemon --stacktrace`, falling back
-  to `assembleDebug` if the release build fails.
-- Uploads the APK (`hdrmerge-apk`, 30-day retention) and the full Gradle log
-  (`build-log`, 7-day retention).
+- Generates a fresh PKCS12 signing keystore on the runner (keystores are
+  gitignored) and signs the release via the environment-driven `ciRelease`
+  signing config in `app/build.gradle.kts`. The key and store passwords match,
+  as required by keytool for PKCS12.
+- Runs `./gradlew :app:assembleRelease --no-daemon --stacktrace` from
+  `android/`, falling back to `assembleDebug` if the release build fails.
+- Uploads the APK (`hdrmerge-apk`, 30-day retention) and the Gradle log
+  (`build-log`, 7-day retention), including both attempts when falling back.
 - Fails the run only if no APK was produced at all.
 - Stages the APK as the stable filename `hdrmerge-lite-latest.apk` and publishes
   / updates the rolling `latest` prerelease with the commit SHA, push timestamp

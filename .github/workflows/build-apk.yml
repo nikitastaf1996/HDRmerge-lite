@@ -20,6 +20,10 @@ jobs:
     name: Build APK
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    defaults:
+      run:
+        # The Gradle wrapper and app module are under android/, not the repo root.
+        working-directory: android
     # Required by the release step: the default GITHUB_TOKEN is read-only and
     # the release update would fail with HTTP 403 without contents: write.
     permissions:
@@ -29,7 +33,9 @@ jobs:
       # run (and .gitignore excludes keystores), so these are not secrets that
       # protect anything in the repository.
       ANDROID_KEYSTORE_PASSWORD: hdrmerge-ci-store-pass
-      ANDROID_KEY_PASSWORD: hdrmerge-ci-key-pass
+      # PKCS12 keystores use the store password for the key too (keytool
+      # ignores a different -keypass), so the two passwords must match.
+      ANDROID_KEY_PASSWORD: hdrmerge-ci-store-pass
       ANDROID_KEY_ALIAS: hdrmerge
 
     steps:
@@ -79,7 +85,7 @@ jobs:
           LOG="$RUNNER_TEMP/build.log"
           if ./gradlew :app:assembleRelease --no-daemon --stacktrace 2>&1 | tee "$LOG"; then
             echo "Release build succeeded"
-          elif ./gradlew :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee "$LOG"; then
+          elif ./gradlew :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee -a "$LOG"; then
             echo "Release build failed; debug build succeeded"
           else
             echo "Both release and debug builds failed"
