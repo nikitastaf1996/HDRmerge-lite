@@ -8,7 +8,6 @@
     <string name="feather_radius">Feather radius</string>
     <string name="output_bits">Output bits</string>
     <string name="merge">Merge</string>
-    <string name="save_output">Save output DNG…</string>
     <string name="status_ready">Ready.</string>
     <string name="merging">Merging…</string>
     <string name="done">Merge complete.</string>
