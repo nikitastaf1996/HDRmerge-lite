@@ -86,11 +86,17 @@ cd android
 ```
 
 Install the resulting APK, open **HDRMerge Lite**, tap each exposure card to pick
-three DNGs (their order does not matter), then press **Merge frames** and
-**Save output DNG…**. Thumbnails are shown when the file provider can supply
-them; otherwise the app uses a placeholder. The processing core supports 16-
-and 32-bit floating-point output, not 8-bit output. Changing an exposure or
-merge setting invalidates the previous output so it cannot be saved by mistake.
+three DNGs (their order does not matter), then press **Merge frames**. The result
+is saved automatically to **Pictures/HDRmerge**, with the first input's name,
+a timestamp, and a unique suffix (for example, `IMG_136016_HDR_20261125_203000_ab12cd34.dng`).
+On Android 8 and 9, grant storage permission when prompted. If saving fails,
+the app keeps the merged file privately and offers **Retry save** without
+re-running the merge. **Reset** clears the three selected inputs, not saved output.
+
+Thumbnails are shown when the file provider can supply them; otherwise the app
+uses a placeholder. The app defaults to a zero-pixel feather radius for new
+installs and remembers changes to that setting. The processing core supports
+16- and 32-bit floating-point output, not 8-bit output.
 
 ### How it works
 
@@ -100,8 +106,9 @@ merge setting invalidates the previous output so it cannot be saved by mistake.
 2. **Merge** calls `HdrMergeEngine.merge`, which invokes
    `hdrmerge_app.run(...)` in the embedded interpreter on a background thread.
    Progress lines from the core are forwarded back to the UI.
-3. The merged DNG is written to `files/output/merged.dng`; **Save output DNG…**
-   lets the user pick a destination and copies it there.
+3. The merged DNG is written to private storage temporarily, then copied to
+   `Pictures/HDRmerge` via MediaStore (or shared storage on Android 8–9).
+   The private copy is retained only if saving fails, so it can be retried.
 
 ## CI and releases
 

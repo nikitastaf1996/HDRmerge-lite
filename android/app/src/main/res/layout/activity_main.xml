@@ -18,8 +18,12 @@
                 android:paddingStart="4dp" android:paddingTop="8dp" android:paddingBottom="16dp">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="EXPOSURES"
                     android:textStyle="bold" android:textSize="17sp" android:textColor="@color/text_primary" />
-                <TextView android:id="@+id/selectionCount" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                <TextView android:id="@+id/selectionCount" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                     android:layout_marginStart="10dp" android:text="—  0 of 3 selected" android:textSize="15sp" android:textColor="@color/text_secondary" />
+                <Button android:id="@+id/resetButton" android:layout_width="wrap_content" android:layout_height="48dp"
+                    android:minWidth="0dp" android:paddingStart="10dp" android:paddingEnd="10dp"
+                    android:background="@drawable/outline_button" android:text="Reset" android:textColor="@color/text_primary"
+                    android:contentDescription="Clear selected exposures" />
             </LinearLayout>
             <include android:id="@+id/rowShort" layout="@layout/exposure_row" />
             <include android:id="@+id/rowMedium" layout="@layout/exposure_row" />
@@ -37,9 +41,9 @@
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/border" />
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="15dp">
                 <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Feather radius" android:textSize="16sp" android:textColor="@color/text_primary" />
-                <TextView android:id="@+id/radiusValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3 px" android:textSize="18sp" android:textColor="@color/text_primary" />
+                <TextView android:id="@+id/radiusValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 px" android:textSize="18sp" android:textColor="@color/text_primary" />
             </LinearLayout>
-            <SeekBar android:id="@+id/radiusSeek" android:layout_width="match_parent" android:layout_height="40dp" android:max="64" android:progress="3" android:contentDescription="Feather radius" />
+            <SeekBar android:id="@+id/radiusSeek" android:layout_width="match_parent" android:layout_height="40dp" android:max="64" android:progress="0" android:contentDescription="Feather radius" />
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/border" />
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:layout_marginTop="14dp">
                 <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Depth" android:textSize="16sp" android:textColor="@color/text_primary" />
@@ -51,9 +55,6 @@
         </LinearLayout>
         <Button android:id="@+id/mergeButton" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="16dp"
             android:background="@drawable/accent_button" android:text="Merge frames" android:textColor="#0C1B1C" android:textSize="16sp" android:textStyle="bold" />
-        <Button android:id="@+id/saveButton" android:layout_width="wrap_content" android:minWidth="220dp" android:layout_height="48dp"
-            android:layout_gravity="center_horizontal" android:layout_marginTop="12dp" android:background="@drawable/outline_button"
-            android:enabled="false" android:text="Save output DNG…" android:textColor="@color/text_primary" />
         <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal" android:layout_marginTop="12dp" android:visibility="gone" />
         <TextView android:id="@+id/statusText" android:layout_width="match_parent" android:layout_height="wrap_content"
