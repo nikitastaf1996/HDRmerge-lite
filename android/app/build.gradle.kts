@@ -12,7 +12,10 @@ val copyPythonSource = tasks.register<Copy>("copyPythonSource") {
     from(rootProject.file("../python")) { include("*.py") }
     into(pythonSourceDir)
 }
-tasks.named("preBuild") { dependsOn(copyPythonSource) }
+// Chaquopy's source merge tasks don't depend on preBuild. Declare their
+// dependency directly for every variant, including clean and incremental builds.
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("PythonSources") }
+    .configureEach { dependsOn(copyPythonSource) }
 
 // CI signing: when the GitHub Actions workflow provides a keystore through
 // environment variables, sign the release with it. Local builds without these
@@ -86,9 +89,8 @@ chaquopy {
 
     sourceSets {
         getByName("main") {
-            // Resolve to a path; the preBuild dependency above guarantees the
-            // copy task has run before the Python sources are packaged.
-            srcDir(copyPythonSource.map { it.destinationDir }.get())
+            // The merge tasks above explicitly depend on the generated source.
+            srcDir(pythonSourceDir)
         }
     }
 }

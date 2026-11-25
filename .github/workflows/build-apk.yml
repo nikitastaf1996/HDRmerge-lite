@@ -9,10 +9,13 @@ name: Build APK
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
-  group: build-apk
+  # A PR or manual build must never cancel a main-branch release build.
+  group: build-apk-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -107,10 +110,32 @@ jobs:
         run: |
           APK=$(find app/build/outputs/apk -name '*.apk' -type f 2>/dev/null | head -n 1)
           if [ -z "$APK" ]; then
+            # Surface concise Gradle errors in job annotations as well as the
+            # full build-log artifact, including both release and debug errors.
+            python - <<'PY'
+          import os
+          from pathlib import Path
+
+          log = Path(os.environ['RUNNER_TEMP']) / 'build.log'
+          if log.exists():
+              remaining = 0
+              for line in log.read_text(errors='replace').splitlines():
+                  if line.startswith('* What went wrong:'):
+                      remaining = 16
+                  elif remaining:
+                      remaining -= 1
+                      if not line.strip() or line.startswith('* Try:'):
+                          remaining = 0
+                          continue
+                  if line.startswith(('ERROR:', 'e: ')) or remaining:
+                      message = line.strip()[:1000].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+                      print(f'::error::{message}')
+          PY
             echo "::error::No APK was produced by the build"
             exit 1
           fi
-          echo "path=$APK" >> "$GITHUB_OUTPUT"
+          # Actions run from the repository root, unlike shell steps above.
+          echo "path=$PWD/$APK" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK artifact
         if: steps.apk.outcome == 'success'
@@ -118,6 +143,7 @@ jobs:
         with:
           name: hdrmerge-apk
           path: ${{ steps.apk.outputs.path }}
+          if-no-files-found: error
           retention-days: 30
 
       - name: Stage stable latest APK
