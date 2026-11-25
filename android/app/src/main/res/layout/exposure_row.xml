@@ -1,0 +1,23 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="104dp"
+    android:layout_marginBottom="10dp" android:background="@drawable/card"
+    android:padding="8dp" android:gravity="center_vertical" android:orientation="horizontal"
+    android:clickable="true" android:focusable="true">
+    <FrameLayout android:layout_width="112dp" android:layout_height="match_parent"
+        android:background="@drawable/thumb_bg" android:clipToOutline="true">
+        <ImageView android:id="@+id/thumbnail" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:src="@drawable/ic_photo" android:scaleType="centerInside" android:contentDescription="@null" />
+    </FrameLayout>
+    <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+        android:paddingStart="12dp" android:paddingEnd="4dp" android:gravity="center_vertical" android:orientation="vertical">
+        <TextView android:id="@+id/fileLabel" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Select a DNG" android:textColor="@color/text_primary" android:textSize="16sp"
+            android:maxLines="1" android:ellipsize="middle" />
+        <TextView android:id="@+id/slotLabel" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="9dp" android:background="@drawable/chip" android:paddingStart="9dp"
+            android:paddingEnd="9dp" android:paddingTop="5dp" android:paddingBottom="5dp"
+            android:textColor="@color/text_primary" android:textSize="13sp" />
+    </LinearLayout>
+    <TextView android:id="@+id/selectedMark" android:layout_width="40dp" android:layout_height="48dp"
+        android:gravity="center" android:text="＋" android:textSize="24sp" android:textColor="@color/accent" />
+</LinearLayout>

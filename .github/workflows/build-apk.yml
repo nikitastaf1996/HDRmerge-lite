@@ -86,9 +86,9 @@ jobs:
         run: |
           set -o pipefail
           LOG="$RUNNER_TEMP/build.log"
-          if ./gradlew :app:assembleRelease --no-daemon --stacktrace 2>&1 | tee "$LOG"; then
+          if ./gradlew :app:assembleRelease --no-daemon --stacktrace --info 2>&1 | tee "$LOG"; then
             echo "Release build succeeded"
-          elif ./gradlew :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee -a "$LOG"; then
+          elif ./gradlew :app:assembleDebug --no-daemon --stacktrace --info 2>&1 | tee -a "$LOG"; then
             echo "Release build failed; debug build succeeded"
           else
             echo "Both release and debug builds failed"
@@ -124,7 +124,7 @@ jobs:
                       remaining = 16
                   elif remaining:
                       remaining -= 1
-                      if not line.strip() or line.startswith('* Try:'):
+                      if line.startswith('* Try:'):
                           remaining = 0
                           continue
                   if line.startswith(('ERROR:', 'e: ')) or remaining:

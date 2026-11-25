@@ -1,171 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/pick_hint"
-            android:textSize="13sp"
-            android:textStyle="italic"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Exposure 1 (shortest) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-            <Button
-                android:id="@+id/pickShort"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/pick_dng" />
-            <TextView
-                android:id="@+id/shortLabel"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="2"
-                android:paddingStart="8dp"
-                android:ellipsize="middle"
-                android:text="@string/not_picked" />
+    android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true"
+    android:background="@color/background">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:paddingStart="20dp" android:paddingEnd="20dp"
+        android:paddingTop="28dp" android:paddingBottom="32dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+            <ImageView android:layout_width="36dp" android:layout_height="36dp" android:src="@drawable/ic_aperture" android:contentDescription="@null" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="14dp"
+                android:text="@string/app_name" android:textSize="26sp" android:textStyle="bold" android:textColor="@color/text_primary" />
         </LinearLayout>
-
-        <!-- Exposure 2 (medium) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-            <Button
-                android:id="@+id/pickMedium"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/pick_dng" />
-            <TextView
-                android:id="@+id/mediumLabel"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="2"
-                android:paddingStart="8dp"
-                android:ellipsize="middle"
-                android:text="@string/not_picked" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp"
+            android:text="Merge 3 bracketed DNG exposures" android:textSize="16sp" android:textColor="@color/text_secondary" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp"
+            android:background="@drawable/panel" android:orientation="vertical" android:padding="10dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical"
+                android:paddingStart="4dp" android:paddingTop="8dp" android:paddingBottom="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="EXPOSURES"
+                    android:textStyle="bold" android:textSize="17sp" android:textColor="@color/text_primary" />
+                <TextView android:id="@+id/selectionCount" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp" android:text="—  0 of 3 selected" android:textSize="15sp" android:textColor="@color/text_secondary" />
+            </LinearLayout>
+            <include android:id="@+id/rowShort" layout="@layout/exposure_row" />
+            <include android:id="@+id/rowMedium" layout="@layout/exposure_row" />
+            <include android:id="@+id/rowLong" layout="@layout/exposure_row" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingStart="4dp" android:paddingBottom="4dp"
+                android:text="Tap a card to choose or replace a DNG. Order does not matter."
+                android:textSize="12sp" android:textColor="@color/text_secondary" />
         </LinearLayout>
-
-        <!-- Exposure 3 (longest) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
-            <Button
-                android:id="@+id/pickLong"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/pick_dng" />
-            <TextView
-                android:id="@+id/longLabel"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="2"
-                android:paddingStart="8dp"
-                android:ellipsize="middle"
-                android:text="@string/not_picked" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp"
+            android:background="@drawable/card" android:orientation="vertical" android:padding="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Auto-align frames" android:textSize="16sp" android:textColor="@color/text_primary" />
+                <Switch android:id="@+id/alignCheck" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:contentDescription="Auto-align frames" />
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/border" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="15dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Feather radius" android:textSize="16sp" android:textColor="@color/text_primary" />
+                <TextView android:id="@+id/radiusValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3 px" android:textSize="18sp" android:textColor="@color/text_primary" />
+            </LinearLayout>
+            <SeekBar android:id="@+id/radiusSeek" android:layout_width="match_parent" android:layout_height="40dp" android:max="64" android:progress="3" android:contentDescription="Feather radius" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/border" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:layout_marginTop="14dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Depth" android:textSize="16sp" android:textColor="@color/text_primary" />
+                <RadioGroup android:id="@+id/bitsGroup" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:background="@drawable/chip">
+                    <RadioButton android:id="@+id/bits16" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="16 bit" android:checked="true" android:textColor="@color/text_primary" />
+                    <RadioButton android:id="@+id/bits32" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="32 bit" android:textColor="@color/text_primary" />
+                </RadioGroup>
+            </LinearLayout>
         </LinearLayout>
-
-        <CheckBox
-            android:id="@+id/alignCheck"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:checked="true"
-            android:text="@string/align_exposures"
-            android:layout_marginBottom="8dp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/feather_radius" />
-            <EditText
-                android:id="@+id/radiusEdit"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:inputType="number"
-                android:minWidth="60dp"
-                android:text="3" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/output_bits" />
-            <Spinner
-                android:id="@+id/bitsSpinner"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/mergeButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/merge" />
-
-        <Button
-            android:id="@+id/saveButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:enabled="false"
-            android:text="@string/save_output"
-            android:layout_marginTop="8dp" />
-
-        <ProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="12dp" />
-
-        <TextView
-            android:id="@+id/statusText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:fontFamily="monospace"
-            android:textSize="12sp"
-            android:text="@string/status_ready" />
+        <Button android:id="@+id/mergeButton" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="16dp"
+            android:background="@drawable/accent_button" android:text="Merge frames" android:textColor="#0C1B1C" android:textSize="16sp" android:textStyle="bold" />
+        <Button android:id="@+id/saveButton" android:layout_width="wrap_content" android:minWidth="220dp" android:layout_height="48dp"
+            android:layout_gravity="center_horizontal" android:layout_marginTop="12dp" android:background="@drawable/outline_button"
+            android:enabled="false" android:text="Save output DNG…" android:textColor="@color/text_primary" />
+        <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal" android:layout_marginTop="12dp" android:visibility="gone" />
+        <TextView android:id="@+id/statusText" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="18dp" android:text="Ready. Select three DNG files to begin." android:textSize="14sp" android:textColor="@color/text_secondary" />
     </LinearLayout>
 </ScrollView>

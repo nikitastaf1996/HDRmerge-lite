@@ -2,97 +2,101 @@ package com.hdrmerge.lite
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.OpenableColumns
+import android.util.Size
 import android.view.View
-import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.CheckBox
-import android.widget.EditText
+import android.widget.ImageView
 import android.widget.ProgressBar
-import android.widget.Spinner
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import android.widget.SeekBar
+import android.widget.Switch
 import android.widget.TextView
 import java.io.File
 import java.util.concurrent.Executors
 
-/**
- * UI for the HDRMerge Lite app.
- *
- * Flow: pick three DNGs (copied into the app's private files dir), tap Merge
- * (runs the Python core on a background thread), then Save to choose a
- * destination for the merged DNG. All Python interaction is delegated to
- * [HdrMergeEngine].
- */
+/** Pick three raw files, merge them off the UI thread, and save the result. */
 class MainActivity : Activity() {
-
     private lateinit var engine: HdrMergeEngine
     private lateinit var statusText: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var mergeButton: Button
     private lateinit var saveButton: Button
-    private lateinit var radiusEdit: EditText
-    private lateinit var bitsSpinner: Spinner
-
+    private lateinit var radiusSeek: SeekBar
+    private lateinit var radiusValue: TextView
+    private lateinit var alignSwitch: Switch
+    private lateinit var bitsGroup: RadioGroup
+    private lateinit var rows: List<View>
     private val executor = Executors.newSingleThreadExecutor()
     private val mainHandler = Handler(Looper.getMainLooper())
-
-    // Activity context is unavailable until after construction.
+    private val prefs by lazy { getSharedPreferences("exposures", MODE_PRIVATE) }
     private val inputDir by lazy { File(filesDir, "inputs") }
-    private val outputDir by lazy { File(filesDir, "output") }
-    private val outputFile by lazy { File(outputDir, "merged.dng") }
-
-    private val inputFiles by lazy {
-        listOf(
-            File(inputDir, "exposure_1.dng"),
-            File(inputDir, "exposure_2.dng"),
-            File(inputDir, "exposure_3.dng"),
-        )
-    }
-    private val inputLabels = mutableListOf<TextView?>(null, null, null)
-
+    private val outputFile by lazy { File(filesDir, "output/merged.dng") }
+    private val inputFiles by lazy { (1..3).map { File(inputDir, "exposure_$it.dng") } }
+    private val thumbnailFiles by lazy { (1..3).map { File(inputDir, "thumbnail_$it.jpg") } }
     private var merging = false
-
-    private val progressSink = object : HdrMergeEngine.ProgressSink {
-        override fun onProgress(message: String) {
-            mainHandler.post { appendStatus(message) }
-        }
+    private val thumbnailGeneration = IntArray(3)
+    private val progressSink = HdrMergeEngine.ProgressSink { message ->
+        mainHandler.post { if (!isFinishing && !isDestroyed) appendStatus(message) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         engine = HdrMergeEngine(this)
         setContentView(R.layout.activity_main)
-
         statusText = findViewById(R.id.statusText)
         progressBar = findViewById(R.id.progressBar)
         mergeButton = findViewById(R.id.mergeButton)
         saveButton = findViewById(R.id.saveButton)
-        radiusEdit = findViewById(R.id.radiusEdit)
-        bitsSpinner = findViewById(R.id.bitsSpinner)
+        radiusSeek = findViewById(R.id.radiusSeek)
+        radiusValue = findViewById(R.id.radiusValue)
+        alignSwitch = findViewById(R.id.alignCheck)
+        bitsGroup = findViewById(R.id.bitsGroup)
+        rows = listOf(findViewById(R.id.rowShort), findViewById(R.id.rowMedium), findViewById(R.id.rowLong))
 
-        inputLabels[0] = findViewById(R.id.shortLabel)
-        inputLabels[1] = findViewById(R.id.mediumLabel)
-        inputLabels[2] = findViewById(R.id.longLabel)
-
-        bitsSpinner.adapter = ArrayAdapter(
-            this, android.R.layout.simple_spinner_dropdown_item, listOf("16", "32"))
-
-        findViewById<Button>(R.id.pickShort).setOnClickListener {
-            DngFiles.pick(this, DngFiles.RC_PICK_SHORT)
+        radiusSeek.progress = prefs.getInt("radius", 3)
+        radiusValue.text = "${radiusSeek.progress} px"
+        alignSwitch.isChecked = prefs.getBoolean("align", true)
+        bitsGroup.check(if (prefs.getInt("bits", 16) == 32) R.id.bits32 else R.id.bits16)
+        val requests = listOf(DngFiles.RC_PICK_SHORT, DngFiles.RC_PICK_MEDIUM, DngFiles.RC_PICK_LONG)
+        rows.forEachIndexed { index, row ->
+            row.findViewById<TextView>(R.id.slotLabel).text = "Exposure ${index + 1}"
+            row.setOnClickListener { DngFiles.pick(this, requests[index]) }
+            updateRow(index)
         }
-        findViewById<Button>(R.id.pickMedium).setOnClickListener {
-            DngFiles.pick(this, DngFiles.RC_PICK_MEDIUM)
-        }
-        findViewById<Button>(R.id.pickLong).setOnClickListener {
-            DngFiles.pick(this, DngFiles.RC_PICK_LONG)
-        }
+        updateCount()
+        updateSaveButton()
+        if (outputFile.isFile) setStatus("Merge ready to save • ${prefs.getInt("output_bits", 16)}-bit • ${outputSize()}")
 
+        radiusSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                radiusValue.text = "$progress px"
+                if (fromUser) {
+                    prefs.edit().putInt("radius", progress).apply()
+                    invalidateOutput()
+                }
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
+            override fun onStopTrackingTouch(seekBar: SeekBar) = Unit
+        })
+        alignSwitch.setOnCheckedChangeListener { _, checked ->
+            prefs.edit().putBoolean("align", checked).apply()
+            invalidateOutput()
+        }
+        bitsGroup.setOnCheckedChangeListener { _, id ->
+            prefs.edit().putInt("bits", if (id == R.id.bits32) 32 else 16).apply()
+            invalidateOutput()
+        }
         mergeButton.setOnClickListener { startMerge() }
         saveButton.setOnClickListener {
-            if (outputFile.exists()) {
-                DngFiles.createDocument(this, "hdrmerge_merged.dng", DngFiles.RC_SAVE)
-            }
+            if (outputFile.isFile) DngFiles.createDocument(this, "hdrmerge_merged.dng", DngFiles.RC_SAVE)
         }
     }
 
@@ -103,9 +107,8 @@ class MainActivity : Activity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode != Activity.RESULT_OK || data?.data == null) return
+        if (resultCode != RESULT_OK || data?.data == null) return
         val uri = data.data!!
-
         when (requestCode) {
             DngFiles.RC_PICK_SHORT, DngFiles.RC_PICK_MEDIUM, DngFiles.RC_PICK_LONG -> {
                 val index = when (requestCode) {
@@ -113,63 +116,117 @@ class MainActivity : Activity() {
                     DngFiles.RC_PICK_MEDIUM -> 1
                     else -> 2
                 }
-                if (DngFiles.copyUriToFile(this, uri, inputFiles[index])) {
-                    inputLabels[index]?.text = uri.lastPathSegment ?: inputFiles[index].name
-                    setStatus("Loaded exposure ${index + 1}: ${inputFiles[index].name}")
-                } else {
-                    setStatus("Could not read the selected file. Try again.")
+                val name = try {
+                    contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use {
+                        if (it.moveToFirst()) it.getString(0) else null
+                    }
+                } catch (_: Exception) { null } ?: uri.lastPathSegment ?: "Selected DNG"
+                setMerging(true)
+                setStatus("Loading $name…")
+                executor.execute {
+                    val copied = DngFiles.copyUriToFile(this, uri, inputFiles[index])
+                    mainHandler.post {
+                        if (!isFinishing && !isDestroyed) {
+                            setMerging(false)
+                            if (copied) {
+                                thumbnailGeneration[index]++
+                                val generation = thumbnailGeneration[index]
+                                thumbnailFiles[index].delete()
+                                prefs.edit().putString("name_$index", name).apply()
+                                invalidateOutput()
+                                updateRow(index)
+                                updateCount()
+                                setStatus("Loaded $name")
+                                // Providers may not expose a DNG thumbnail; keep the placeholder if not.
+                                if (Build.VERSION.SDK_INT >= 29) executor.execute {
+                                    try {
+                                        val bitmap = contentResolver.loadThumbnail(uri, Size(320, 240), null)
+                                        mainHandler.post {
+                                            if (!isFinishing && !isDestroyed && thumbnailGeneration[index] == generation) {
+                                                thumbnailFiles[index].outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 85, it) }
+                                                updateRow(index)
+                                            }
+                                        }
+                                    } catch (_: Exception) { /* No embedded/provider thumbnail. */ }
+                                }
+                            } else setStatus("Could not read the selected file. Try again.")
+                        }
+                    }
                 }
             }
             DngFiles.RC_SAVE -> {
                 if (DngFiles.copyFileToUri(this, outputFile, uri)) {
-                    setStatus("Saved merged DNG to ${uri.lastPathSegment}")
-                } else {
-                    setStatus("Could not write the output file. Try again.")
-                }
+                    setStatus("✓  Merged DNG saved • ${prefs.getInt("output_bits", 16)}-bit • ${outputSize()}")
+                } else setStatus("Could not write the output file. Try again.")
             }
         }
     }
 
+    private fun updateRow(index: Int) {
+        val row = rows[index]
+        val selected = inputFiles[index].isFile
+        row.findViewById<TextView>(R.id.fileLabel).text = if (selected) prefs.getString("name_$index", "Selected DNG") else "Select a DNG"
+        row.findViewById<TextView>(R.id.selectedMark).text = if (selected) "✓" else "＋"
+        row.contentDescription = if (selected) "Exposure ${index + 1}, ${prefs.getString("name_$index", "selected DNG")}. Tap to replace" else "Select exposure ${index + 1}"
+        val image = row.findViewById<ImageView>(R.id.thumbnail)
+        val bitmap = if (selected) BitmapFactory.decodeFile(thumbnailFiles[index].absolutePath) else null
+        if (bitmap != null) {
+            image.scaleType = ImageView.ScaleType.CENTER_CROP
+            image.setImageBitmap(bitmap)
+        } else {
+            image.scaleType = ImageView.ScaleType.CENTER_INSIDE
+            image.setImageResource(R.drawable.ic_photo)
+        }
+    }
+
+    private fun updateCount() {
+        findViewById<TextView>(R.id.selectionCount).text = "—  ${inputFiles.count { it.isFile }} of 3 selected"
+    }
+
+    private fun invalidateOutput() {
+        if (outputFile.exists()) {
+            outputFile.delete()
+            updateSaveButton()
+            setStatus("Settings or exposures changed. Merge again to save a new output.")
+        }
+    }
+
+    private fun outputSize(): String = String.format(java.util.Locale.getDefault(), "%.1f MB", outputFile.length() / 1_000_000.0)
+
     private fun startMerge() {
         if (merging) return
-        val present = inputFiles.filter { it.exists() }
-        if (present.size != 3) {
+        if (inputFiles.any { !it.isFile }) {
             setStatus("Please pick all three DNG exposures first.")
             return
         }
-        val radius = radiusEdit.text.toString().toIntOrNull()
-        if (radius == null || radius < 0 || radius > 64) {
-            setStatus("Feather radius must be a number between 0 and 64.")
-            return
-        }
-        val bits = if (bitsSpinner.selectedItemPosition == 0) 16 else 32
-        val align = findViewById<CheckBox>(R.id.alignCheck).isChecked
-
-        outputDir.mkdirs()
-        if (outputFile.exists()) outputFile.delete()
-
+        val radius = radiusSeek.progress
+        val bits = if (bitsGroup.checkedRadioButtonId == R.id.bits32) 32 else 16
+        val align = alignSwitch.isChecked
+        outputFile.parentFile?.mkdirs()
+        outputFile.delete()
+        val pendingOutput = File(outputFile.parentFile, "merged-pending.dng")
+        pendingOutput.delete()
         setMerging(true)
         setStatus("Merging…")
         executor.execute {
             try {
-                val written = engine.merge(
-                    inputs = inputFiles.map { it.absolutePath },
-                    outputPath = outputFile.absolutePath,
-                    align = align,
-                    radius = radius,
-                    bits = bits,
-                    progress = progressSink,
-                )
+                engine.merge(inputFiles.map { it.absolutePath }, pendingOutput.absolutePath, align, radius, bits, progressSink)
+                check(pendingOutput.isFile && pendingOutput.renameTo(outputFile)) { "Could not finalize merged DNG" }
                 mainHandler.post {
-                    setMerging(false)
-                    saveButton.isEnabled = true
-                    setStatus("Merge complete. Output: ${written}")
+                    if (!isFinishing && !isDestroyed) {
+                        prefs.edit().putInt("output_bits", bits).apply()
+                        setMerging(false)
+                        setStatus("✓  Merge complete • $bits-bit • ${outputSize()}")
+                    }
                 }
             } catch (e: Throwable) {
+                pendingOutput.delete()
+                outputFile.delete()
                 mainHandler.post {
-                    setMerging(false)
-                    saveButton.isEnabled = false
-                    setStatus("Merge failed: ${e.message ?: e.toString()}")
+                    if (!isFinishing && !isDestroyed) {
+                        setMerging(false)
+                        setStatus("Merge failed: ${e.message ?: e}")
+                    }
                 }
             }
         }
@@ -178,18 +235,19 @@ class MainActivity : Activity() {
     private fun setMerging(value: Boolean) {
         merging = value
         mergeButton.isEnabled = !value
-        saveButton.isEnabled = !value && outputFile.exists()
+        mergeButton.alpha = if (value) 0.5f else 1f
+        updateSaveButton()
         progressBar.visibility = if (value) View.VISIBLE else View.GONE
-        findViewById<Button>(R.id.pickShort).isEnabled = !value
-        findViewById<Button>(R.id.pickMedium).isEnabled = !value
-        findViewById<Button>(R.id.pickLong).isEnabled = !value
+        rows.forEach { it.isEnabled = !value; it.alpha = if (value) 0.5f else 1f }
+        radiusSeek.isEnabled = !value
+        alignSwitch.isEnabled = !value
+        findViewById<RadioButton>(R.id.bits16).isEnabled = !value
+        findViewById<RadioButton>(R.id.bits32).isEnabled = !value
     }
-
-    private fun setStatus(message: String) {
-        statusText.text = message
+    private fun updateSaveButton() {
+        saveButton.isEnabled = !merging && outputFile.isFile
+        saveButton.alpha = if (saveButton.isEnabled) 1f else 0.45f
     }
-
-    private fun appendStatus(message: String) {
-        statusText.append("\n$message")
-    }
+    private fun setStatus(message: String) { statusText.text = message }
+    private fun appendStatus(message: String) { statusText.append("\n$message") }
 }
