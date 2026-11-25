@@ -48,12 +48,12 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Python 3.11
-        # Chaquopy builds its Python packages with a local interpreter whose
-        # major.minor must match the app's runtime version (3.11 here).
+      - name: Set up Python 3.10
+        # Match the app runtime: Chaquopy's SciPy Android wheels support 3.10,
+        # but not 3.11. The build interpreter must have the same major.minor.
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
       - name: Set up Android SDK and NDK
         uses: android-actions/setup-android@v3

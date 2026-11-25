@@ -112,7 +112,7 @@ https://github.com/nikitastaf1996/HDRmerge-lite/releases/download/latest/hdrmerg
 
 The workflow:
 
-- Runs on `ubuntu-24.04`, sets up JDK 17 (Temurin), Python 3.11 (Chaquopy's
+- Runs on `ubuntu-24.04`, sets up JDK 17 (Temurin), Python 3.10 (Chaquopy's
   build interpreter, matching the app's runtime version), Android SDK 35 and
   NDK 27.1.12297006.
 - Generates a fresh PKCS12 signing keystore on the runner (keystores are
@@ -140,6 +140,8 @@ The APK is not committed to the repository.
   Android SDK available). The Gradle project is set up for Chaquopy 17.2.0 /
   AGP 8.5.2 and follows the current Chaquopy configuration; run `./gradlew` to
   build it on a machine with the toolchain above.
+- The older NumPy and SciPy Android wheels used by Python 3.10 predate 16 KB
+  page-size support and may fail to load on devices using 16 KB pages.
 - Processing uses several times the input size in memory; check performance on
   the target device. Output is a floating-point Bayer CFA DNG, which needs a
   raw developer that supports DNG 1.4 float.
