@@ -37,16 +37,19 @@ class MainActivity : Activity() {
     private val executor = Executors.newSingleThreadExecutor()
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    private val inputDir = File(filesDir, "inputs")
-    private val outputDir = File(filesDir, "output")
-    private val outputFile = File(outputDir, "merged.dng")
+    // Activity context is unavailable until after construction.
+    private val inputDir by lazy { File(filesDir, "inputs") }
+    private val outputDir by lazy { File(filesDir, "output") }
+    private val outputFile by lazy { File(outputDir, "merged.dng") }
 
-    private val inputFiles = listOf(
-        File(inputDir, "exposure_1.dng"),
-        File(inputDir, "exposure_2.dng"),
-        File(inputDir, "exposure_3.dng"),
-    )
-    private val inputLabels = listOf<TextView?>(null, null, null)
+    private val inputFiles by lazy {
+        listOf(
+            File(inputDir, "exposure_1.dng"),
+            File(inputDir, "exposure_2.dng"),
+            File(inputDir, "exposure_3.dng"),
+        )
+    }
+    private val inputLabels = mutableListOf<TextView?>(null, null, null)
 
     private var merging = false
 

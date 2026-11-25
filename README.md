@@ -101,10 +101,10 @@ Install the resulting APK, open **HDRMerge Lite**, pick three DNGs, press
 
 ## CI and releases
 
-`.github/workflows/build-apk.yml` builds a release APK automatically on every
-push to `main` (and on manual `workflow_dispatch`) and publishes it to a rolling
-**`latest`** prerelease. The stable download URL therefore always serves the
-freshest build:
+`.github/workflows/build-apk.yml` builds an APK for pull requests targeting
+`main`, pushes to `main`, and manual `workflow_dispatch` runs. Only pushes to
+`main` publish to the rolling **`latest`** prerelease. The stable download URL
+therefore serves the latest successful main-branch build:
 
 ```
 https://github.com/nikitastaf1996/HDRmerge-lite/releases/download/latest/hdrmerge-lite-latest.apk

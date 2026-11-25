@@ -1,7 +1,7 @@
 package com.hdrmerge.lite
 
 import android.content.Context
-import com.chaquo.python.AndroidPlatform
+import com.chaquo.python.android.AndroidPlatform
 import com.chaquo.python.Python
 import com.chaquo.python.PyObject
 
@@ -34,9 +34,10 @@ class HdrMergeEngine(context: Context) {
         python?.let { return it }
         synchronized(this) {
             python?.let { return it }
-            val p = if (Python.isStarted()) Python.getMainPython()
-            else Python.start(AndroidPlatform(appContext))
+            if (!Python.isStarted()) Python.start(AndroidPlatform(appContext))
+            val p = Python.getInstance()
             module = p.getModule("hdrmerge_app")
+            python = p
             return p
         }
     }
@@ -61,8 +62,8 @@ class HdrMergeEngine(context: Context) {
         bits: Int,
         progress: ProgressSink?,
     ): String {
-        val py = ensureStarted()
+        ensureStarted()
         val result = module!!.callAttr("run", inputs, outputPath, align, radius, bits, progress)
-        return result.getAttr("output").getString()
+        return result.callAttr("__getitem__", "output").toString()
     }
 }
