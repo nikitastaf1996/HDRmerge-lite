@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 7.x launcher icon: reuse the same artwork as the header. -->
+<!-- Android 7.x launcher icon: the full "First Light" tile. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@drawable/ic_aperture" />
+    <item
+        android:width="108dp"
+        android:height="108dp"
+        android:drawable="@drawable/ic_logo" />
 </layer-list>
