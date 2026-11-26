@@ -1,9 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Keep the aperture inside the adaptive icon's 66dp safe zone. -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:width="66dp"
-        android:height="66dp"
-        android:gravity="center"
-        android:drawable="@drawable/ic_aperture" />
-</layer-list>
+<!-- Adaptive launcher foreground: "First Light" full-bleed, with the sun and the
+     ridge crest inside the 66dp safe zone. The tile comes from the adaptive
+     background (@color/background). Concept art:
+     design/logo-concepts/concept_e_first_light.png -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+
+    <!-- Sky tint, fading out toward the background color at the bottom -->
+    <path android:pathData="M0,0 H108 V108 H0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="54" android:startY="0"
+                android:endX="54" android:endY="108">
+                <item android:offset="0" android:color="#E617333C" />
+                <item android:offset="0.55" android:color="#660F2229" />
+                <item android:offset="1" android:color="#000D1215" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Dawn glow blooming around the sun (bottom spill is covered by the ridge) -->
+    <path android:pathData="M20,68 a34,34 0 1 1 68,0 a34,34 0 1 1 -68,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="54" android:centerY="68"
+                android:gradientRadius="34">
+                <item android:offset="0" android:color="#F2FFDFA0" />
+                <item android:offset="0.25" android:color="#96F5B942" />
+                <item android:offset="0.55" android:color="#3DDE9A3A" />
+                <item android:offset="0.8" android:color="#146E5B3B" />
+                <item android:offset="1" android:color="#00000000" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- The sun, half risen (lower half is covered by the ridge) -->
+    <path android:pathData="M41,71 a13,13 0 1 1 26,0 a13,13 0 1 1 -26,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="54" android:startY="58"
+                android:endX="54" android:endY="84">
+                <item android:offset="0" android:color="#FFFFD983" />
+                <item android:offset="1" android:color="#FFF0A62F" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Ridge silhouette -->
+    <path
+        android:fillColor="#FF070B0D"
+        android:pathData="M0,108 L0,86 C18,78 36,71.5 54,71 C72,70.5 90,77 108,85 L108,108 Z" />
+</vector>

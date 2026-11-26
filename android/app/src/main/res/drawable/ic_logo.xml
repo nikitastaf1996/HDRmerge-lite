@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Brand mark: "First Light". A half-risen sun on a dark ridge — the one scene
+     every camera crushes, and HDR's promise that the merged frame should look
+     the way you remember it. Concept art: design/logo-concepts/concept_e_first_light.png -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="36dp" android:height="36dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+
+    <!-- Rounded tile: night sky, deep teal fading to near-black -->
+    <path android:pathData="M24,0 L84,0 A24,24 0 0 1 108,24 L108,84 A24,24 0 0 1 84,108 L24,108 A24,24 0 0 1 0,84 L0,24 A24,24 0 0 1 24,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="54" android:startY="0"
+                android:endX="54" android:endY="108">
+                <item android:offset="0" android:color="#FF17333C" />
+                <item android:offset="1" android:color="#FF0A0E10" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Dawn glow blooming around the sun (bottom spill is covered by the ridge) -->
+    <path android:pathData="M20,68 a34,34 0 1 1 68,0 a34,34 0 1 1 -68,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="54" android:centerY="68"
+                android:gradientRadius="34">
+                <item android:offset="0" android:color="#F2FFDFA0" />
+                <item android:offset="0.25" android:color="#96F5B942" />
+                <item android:offset="0.55" android:color="#3DDE9A3A" />
+                <item android:offset="0.8" android:color="#146E5B3B" />
+                <item android:offset="1" android:color="#00000000" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- The sun, half risen (lower half is covered by the ridge) -->
+    <path android:pathData="M41,71 a13,13 0 1 1 26,0 a13,13 0 1 1 -26,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="54" android:startY="58"
+                android:endX="54" android:endY="84">
+                <item android:offset="0" android:color="#FFFFD983" />
+                <item android:offset="1" android:color="#FFF0A62F" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Ridge silhouette -->
+    <path
+        android:fillColor="#FF070B0D"
+        android:pathData="M0,108 L0,86 C18,78 36,71.5 54,71 C72,70.5 90,77 108,85 L108,108 Z" />
+</vector>
