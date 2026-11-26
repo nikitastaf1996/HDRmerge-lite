@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keep the aperture inside the adaptive icon's 66dp safe zone. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="66dp"
+        android:height="66dp"
+        android:gravity="center"
+        android:drawable="@drawable/ic_aperture" />
+</layer-list>
